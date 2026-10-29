@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Layout — Interactive UI Demo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101112;color:#eee;font:16px/1.5 Arial,sans-serif}main{max-width:1000px;margin:auto;padding:32px 20px}header{display:flex;align-items:center;justify-content:space-between;gap:20px}h1{font-size:30px;margin:0}p{color:#aaa;max-width:650px}button{border:1px solid #666;background:#252525;color:white;padding:10px 18px;border-radius:8px;cursor:pointer}button:focus-visible{outline:3px solid #b6ed80}.panel{position:relative;width:min(100%,440px);height:580px;margin:28px auto;background:#1d1d1d;border:1px solid #444;border-radius:12px;overflow:hidden;resize:both;min-width:280px;min-height:400px;max-width:100%}canvas{width:100%;height:100%;display:block}#status{font-size:13px;text-align:center}footer{font-size:13px;color:#aaa}.fields{display:none;position:absolute;left:6.5%;top:75%;width:30%;height:20%;flex-direction:column;gap:20%}.fields input{width:100%;flex:1;min-height:0;background:#d0d0d0;border:3px solid black;border-radius:5px;text-align:center;font-size:22px;color:#111}@media(max-width:500px){main{padding:20px 12px}.panel{height:530px}}
+</style></head><body><main>
+<header><div><h1>Layout</h1><span>Interactive interface by Ahmed Hamed</span></div><button id="reset" type="button">Reset demo</button></header>
+<p>Explore the tabs and controls in the Rive interface. This preview demonstrates the UI; generating layers and compositions requires the After Effects extension.</p>
+<div class="panel" id="panel"><canvas id="ui" aria-label="Interactive Layout extension interface"></canvas><div class="fields" id="fields"><input id="rows" aria-label="Rows" type="number" min="1" max="10" value="3"><input id="cols" aria-label="Columns" type="number" min="1" max="10" value="3"></div></div>
+<p id="status" role="status">Loading interface…</p><footer>Rive UI preview · Resize the panel to explore its responsive layout.</footer>
+</main><script src="https://unpkg.com/@rive-app/canvas@2.36.0/rive.js"></script><script>
+let player;const canvas=document.getElementById('ui'),status=document.getElementById('status'),fields=document.getElementById('fields');
+function launch(){if(player)player.cleanup();fields.style.display='none';status.textContent='Loading interface…';
+if(!window.rive){status.textContent='The animation runtime could not load. Check your internet connection and reload.';return;}
+player=new rive.Rive({src:'main.riv',canvas,autoplay:true,autoBind:true,artboard:'Window',stateMachines:'main',layout:new rive.Layout({fit:rive.Fit.Layout}),onLoad:()=>{
+player.resizeDrawingSurfaceToCanvas();status.textContent='Ready — explore the interface.';
+try{const vm=player.defaultViewModel(),instance=vm.instanceByName('Instance');player.bindViewModelInstance(instance);const mode=instance.boolean('gridOrLayout');const sync=()=>fields.style.display=mode.value?'flex':'none';mode.on(sync);sync();const grid=instance.viewModel('propertyOfGrid');for(const [id,key] of [['rows','curColNum'],['cols','curCellNum']]){const input=document.getElementById(id);input.value='3';input.oninput=()=>{if(input.value==='')return;const n=Math.max(1,Math.min(10,Number(input.value)));if(Number.isFinite(n))grid.number(key).value=n;};}}
+catch(error){console.warn('Optional grid controls unavailable',error);}
+},onLoadError:()=>{status.textContent='The Rive file could not load. Reload the page to try again.';}});}
+new ResizeObserver(()=>player?.resizeDrawingSurfaceToCanvas()).observe(document.getElementById('panel'));
+document.getElementById('reset').onclick=launch;launch();
+</script></body></html>
